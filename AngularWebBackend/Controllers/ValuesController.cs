@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AngularWebBackend.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,31 +10,31 @@ namespace AngularWebBackend.Controllers
 {
     public class ValuesController : ApiController
     {
-        // GET api/values
-        public IEnumerable<string> Get()
+        [HttpGet]
+        [Route("api/values/OrderCount")]
+        public int OrderCount()
         {
-            return new string[] { "value1", "value2" };
+            northwindEntities entities = new northwindEntities();
+            int orderCount = entities.Orders.Count();
+            entities.Dispose();
+            return orderCount;
         }
 
-        // GET api/values/5
-        public string Get(int id)
+        [HttpGet]
+        [Route("api/values/LastNOrders/{id:int}")]
+        public List<string> LastNOrders(int id)
         {
-            return "value";
-        }
+            northwindEntities entities = new northwindEntities();
+            int numberOfOrdersToReturn = id;
+            List<Order> lastOrders = (from o in entities.Orders
+                                      orderby o.OrderDate descending
+                                      select o).Take(numberOfOrdersToReturn).ToList();
 
-        // POST api/values
-        public void Post([FromBody]string value)
-        {
-        }
+            List<string> customerNames =
+                lastOrders.Select(o => o.Customer.CompanyName).ToList();
 
-        // PUT api/values/5
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE api/values/5
-        public void Delete(int id)
-        {
+            entities.Dispose();
+            return customerNames;
         }
     }
 }
